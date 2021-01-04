@@ -23,6 +23,7 @@ export default {
     }
   },
   mounted() {
+    console.log(444, this.tableData);
     const methods = [
       "clearSelection",
       "toggleRowSelection",

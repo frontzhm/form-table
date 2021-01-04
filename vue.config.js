@@ -28,8 +28,15 @@ module.exports = {
                 isAsc ? x[sortBy] - y[sortBy] : y[sortBy] - x[sortBy]
               )
             : data;
-        data = data.slice((pageIndex - 1) * pageSize, pageSize * pageIndex);
-        const r = res.json({ state: 1, data, dataCount: data.length });
+        const curPageData = data.slice(
+          (pageIndex - 1) * pageSize,
+          pageSize * pageIndex
+        );
+        const r = res.json({
+          state: 1,
+          data: curPageData,
+          dataCount: data.length
+        });
         return r;
       });
     }
