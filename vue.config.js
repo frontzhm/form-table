@@ -22,12 +22,13 @@ module.exports = {
           name && (res = item.name === name);
           return res;
         });
-        data =
-          sortBy && isAsc
-            ? data.sort((x, y) =>
-                isAsc ? x[sortBy] - y[sortBy] : y[sortBy] - x[sortBy]
-              )
-            : data;
+        if (sortBy && isAsc) {
+          isAsc === "true"
+            ? data.sort((x, y) => x[sortBy] - y[sortBy])
+            : data.sort((x, y) => y[sortBy] - x[sortBy]);
+          console.log(sortBy, isAsc);
+        }
+
         const curPageData = data.slice(
           (pageIndex - 1) * pageSize,
           pageSize * pageIndex

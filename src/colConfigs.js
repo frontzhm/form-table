@@ -13,5 +13,5 @@ export default [
     label: "季度"
   },
 
-  { prop: "score", label: "分数" }
+  { prop: "score", label: "分数", sortable: "custom" }
 ];
