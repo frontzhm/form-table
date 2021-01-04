@@ -6,7 +6,7 @@ div#app
         el-form-item.app-btns-box
           el-button.btn(type='primary', @click='clickSearchBtn') 查询
     //- 表格区域
-    enhanced-el-table(:data='tableData', :col-configs='colConfigs')
+    enhanced-el-table(:data='tableDataNative', :col-configs='colConfigs')
       template(#name="colConfig")
         el-table-column(v-bind="colConfig")
           template(#default="{row}")
@@ -42,11 +42,7 @@ export default {
       dataCount: 0
     };
   },
-  computed: {
-    tableData() {
-      return this.tableDataNative;
-    }
-  },
+
   mounted() {
     this.getTableData();
   },
