@@ -23,16 +23,6 @@ export default [
       ]
     }
   },
-  {
-    modelKey: "area",
-    label: "大区",
-    type: "select",
-    props: {
-      filterable: true,
-      default: "",
-      options: null
-    }
-  },
-  { modelKey: "name", label: "姓名", type: "input" },
-  { modelKey: "code", label: "编号", type: "input" }
+
+  { modelKey: "name", label: "姓名", type: "input" }
 ];

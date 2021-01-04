@@ -1,24 +1,34 @@
-const nativeData = Array.from({ length: 28 }, (v, i) => ({
-  orderNumber: i + 1,
-  projectName: "高中" + i + 1,
-  teacherCount: 60 + i + 1,
-  lessonCount: 948 + i + 1,
-  uploadPercent: Math.random(),
-  passPercent: Math.random()
-}));
+const nativeData = require("./mock");
 module.exports = {
   devServer: {
     before(app) {
       app.get("/api/list", (req, res) => {
         console.log(req.query);
-        const { pageIndex, pageSize, sortBy, isAsc } = req.query;
-        let data =
+        const {
+          pageIndex,
+          pageSize,
+          sortBy,
+          isAsc,
+          year,
+          quarter,
+          name
+        } = req.query;
+        let data = [...nativeData];
+        // 查询条件过滤
+        data = data.filter(item => {
+          let res = true;
+          year && (res = item.year === year);
+          quarter && (res = item.quarter === quarter);
+          name && (res = item.name === name);
+          return res;
+        });
+        data =
           sortBy && isAsc
-            ? nativeData.sort((x, y) =>
+            ? data.sort((x, y) =>
                 isAsc ? x[sortBy] - y[sortBy] : y[sortBy] - x[sortBy]
               )
-            : nativeData;
-        data = data.slice(pageIndex * pageSize, pageSize * (pageIndex - 0 + 1));
+            : data;
+        data = data.slice((pageIndex - 1) * pageSize, pageSize * pageIndex);
         const r = res.json({ state: 1, data, dataCount: data.length });
         return r;
       });

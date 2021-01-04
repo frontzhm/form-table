@@ -1,20 +1,17 @@
 export default [
   { prop: "orderNumber", label: "序号" },
   {
-    slotName: "projectName",
-    label: "教研组"
+    slotName: "name",
+    label: "姓名"
   },
   {
-    prop: "teacherCount",
-    label: "教师数量"
+    prop: "year",
+    label: "年份"
   },
   {
-    prop: "lessonCount",
-    label: "总课次"
+    prop: "quarter",
+    label: "季度"
   },
-  {
-    prop: "uploadPercent",
-    label: "上传率"
-  },
-  { prop: "passPercent", label: "合格率" }
+
+  { prop: "score", label: "分数" }
 ];
