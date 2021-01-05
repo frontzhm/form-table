@@ -4,6 +4,7 @@ tags: js
 categories: js
 ---
 
+<!-- model watch的时候只有第一次生效 -->
 做后台系统的时候，估计接触最多的就是`表单 + 表格`，以此进行**增删改查**的操作。
 
 本篇，努力将**增删改查**的通用逻辑分析清除，使用的时候，能通过简单的配置，就搞定一个复杂的页面。
@@ -49,6 +50,20 @@ categories: js
 ![table-form7](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form7.png)
 ![table-form8](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form8.gif)
 
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c2分支`
+
+## 3. 增加查询条件变化
+
+点击查询的时候，按照查询条件，请求数据。
+
+！！！注意，当前页数需要重置为1，排序也需要重置。
+
+为了重置，需要一开始记录开始的排序数据。
+
+![table-form9](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form9.gif)
+![table-form10](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form10.png)
+
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c3分支`
 
 ## 代码
 
@@ -188,15 +203,15 @@ export default [
     modelKey: "year",
     label: "年份",
     type: "date-picker",
-    default: new Date().getFullYear() + "",
     props: {
-      type: "year"
-    },
-    format: "yyyy",
-    valueFormat: "yyyy"
+      type: "year",
+      format: "yyyy",
+      valueFormat: "yyyy",
+      style: { width: "150px" }
+    }
   },
   {
-    modelKey: "term",
+    modelKey: "quarter",
     label: "季度",
     type: "select",
     props: {
@@ -205,12 +220,14 @@ export default [
         { value: "夏", label: "夏" },
         { value: "秋", label: "秋" },
         { value: "冬", label: "冬" }
-      ]
+      ],
+      style: { width: "150px" }
     }
   },
 
-  { modelKey: "name", label: "姓名", type: "input" }
+  { modelKey: "name", label: "姓名", type: "input", style: { width: "150px" } }
 ];
+
 
 ```
 
@@ -342,7 +359,7 @@ mock.js
 ```js
 module.exports = Array.from({ length: 28 }, (v, i) => ({
   orderNumber: i + 1,
-  year: "199" + i - 0 + 1,
+  year: "199" + i - 0 + 1 + "",
   quarter: i % 4 === 1 ? "春" : i % 4 === 2 ? "夏" : i % 4 === 3 ? "秋" : "冬",
   name: `李三${i + 1}`,
   score: `8${i}`
@@ -359,45 +376,43 @@ module.exports = {
     before(app) {
       app.get("/api/list", (req, res) => {
         console.log(req.query);
-        const {
-          pageIndex,
-          pageSize,
-          sortBy,
-          isAsc,
-          year,
-          quarter,
-          name
-        } = req.query;
+        const { pageIndex, pageSize, sortBy, isAsc, year, quarter, name } = req.query;
         let data = [...nativeData];
-        // 查询条件过滤
-        data = data.filter(item => {
-          let res = true;
-          year && (res = item.year === year);
-          quarter && (res = item.quarter === quarter);
-          name && (res = item.name === name);
-          return res;
-        });
+        // 拿到查询条件
+        const conditions = { year, quarter, name };
+        // 看查询条件有没有值
+        const keysOfHasValue = Object.keys(conditions).filter(
+          key => conditions[key]
+        );
+        const isHasCondition = keysOfHasValue.length > 0;
+        // 如果有查询条件的话就过滤下
+        if (isHasCondition) {
+          data = data.filter(item =>
+            keysOfHasValue.every(key => item[key] === conditions[key])
+          );
+        }
+
+        // 如果有排序的话
         if (sortBy && isAsc) {
           isAsc === "true"
             ? data.sort((x, y) => x[sortBy] - y[sortBy])
             : data.sort((x, y) => y[sortBy] - x[sortBy]);
-          console.log(sortBy, isAsc);
         }
 
-        const curPageData = data.slice(
-          (pageIndex - 1) * pageSize,
-          pageSize * pageIndex
-        );
-        const r = res.json({
+        // 如果有分页的话
+        if (pageSize) {
+          data = data.slice((pageIndex - 1) * pageSize, pageSize * pageIndex);
+        }
+        return res.json({
           state: 1,
-          data: curPageData,
+          data,
           dataCount: data.length
         });
-        return r;
       });
     }
   }
 };
+
 
 ```
 
@@ -558,6 +573,119 @@ export default {
 
     clickName() {},
     clickSearchBtn() {}
+  }
+};
+</script>
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+}
+
+.el-table {
+  border: 1px solid #e8e8e8;
+  width: 90%;
+  margin: auto;
+}
+.pagination-box {
+  margin-top: 20px;
+  text-align: center;
+}
+</style>
+
+```
+
+### 代码：3. 增加查询条件变化
+
+App.vue
+
+```vue
+<template lang="pug">
+div#app
+  //- 表单区域
+  enhanced-el-form(:model="model" :schema="schema"  :inline="true" label-width="70px" label-position= "right")
+    template(#footer)
+      el-form-item.app-btns-box
+        el-button.btn(type='primary', @click='clickSearchBtn') 查询
+  //- 表格区域
+  enhanced-el-table(@sort-change="sortChange" :data='tableData', :col-configs='colConfigs')
+    template(#name="colConfig")
+      el-table-column(v-bind="colConfig")
+        template(#default="{row}")
+          a.link(href="javascript:;" @click="clickName(row)") {{row.name}}
+  //- 分页
+  .pagination-box
+    el-pagination(@current-change='changeCurrentPage', :current-page.sync='pageIndex', :page-size='pageSize', layout='prev, pager, next, jumper', :total='dataCount')
+</template>
+<script>
+import EnhancedElTable from "@/components/EnhancedElTable";
+import EnhancedElForm from "@/components/EnhancedElForm";
+import schema from "./schema";
+import colConfigs from "./colConfigs";
+export default {
+  name: "app",
+  components: { EnhancedElTable, EnhancedElForm },
+
+  data() {
+    return {
+      // 表单数据
+      model: {},
+      // 表单配置
+      schema,
+      // 表格配置
+      colConfigs,
+      // 表格请求的原始数据
+      tableData: [],
+      // 有数据就意味着可能分页
+      pageIndex: 0,
+      pageSize: 10,
+      isAsc: "",
+      sortBy: "",
+      // 数据总长度，基本只给分页组件用的
+      dataCount: 0
+    };
+  },
+  mounted() {
+    this.sortConditionDefault = { isAsc: this.isAsc, sortBy: this.sortBy };
+    this.getTableData();
+  },
+  watch: {
+    isAsc() {
+      this.getTableData();
+    },
+    sortBy() {
+      this.getTableData();
+    },
+    pageIndex() {
+      this.getTableData();
+    }
+  },
+  methods: {
+    clickSearchBtn() {
+      this.pageIndex = 1;
+      this.sortBy = this.sortConditionDefault.sortBy;
+      this.isAsc = this.sortConditionDefault.isAsc;
+      this.getTableData();
+    },
+    changeCurrentPage(curPageIndex) {
+      this.pageIndex = curPageIndex;
+    },
+    async getTableData() {
+      const { pageIndex, pageSize, sortBy, isAsc } = this;
+      let params = { ...this.model, pageIndex, pageSize, sortBy, isAsc };
+      const res = await this.$api.ApiGetList(params);
+      this.tableData = res.data;
+      this.dataCount = res.dataCount;
+    },
+    sortChange({ column, prop, order }) {
+      console.log(column, prop, order);
+      this.isAsc = order === "ascending";
+      this.sortBy = prop;
+    },
+
+    clickName() {}
   }
 };
 </script>

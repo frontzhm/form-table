@@ -1,7 +1,7 @@
 <template lang="pug">
 div#app
   //- 表单区域
-  enhanced-el-form(:model="model" :schema="schema"  :inline="true" label-width="100px" label-position= "right")
+  enhanced-el-form(:model="model" :schema="schema"  :inline="true" label-width="70px" label-position= "right")
     template(#footer)
       el-form-item.app-btns-box
         el-button.btn(type='primary', @click='clickSearchBtn') 查询
@@ -44,6 +44,7 @@ export default {
     };
   },
   mounted() {
+    this.sortConditionDefault = { isAsc: this.isAsc, sortBy: this.sortBy };
     this.getTableData();
   },
   watch: {
@@ -58,6 +59,12 @@ export default {
     }
   },
   methods: {
+    clickSearchBtn() {
+      this.pageIndex = 1;
+      this.sortBy = this.sortConditionDefault.sortBy;
+      this.isAsc = this.sortConditionDefault.isAsc;
+      this.getTableData();
+    },
     changeCurrentPage(curPageIndex) {
       this.pageIndex = curPageIndex;
     },
@@ -74,8 +81,7 @@ export default {
       this.sortBy = prop;
     },
 
-    clickName() {},
-    clickSearchBtn() {}
+    clickName() {}
   }
 };
 </script>

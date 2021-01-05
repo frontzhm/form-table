@@ -3,15 +3,15 @@ export default [
     modelKey: "year",
     label: "年份",
     type: "date-picker",
-    default: new Date().getFullYear() + "",
     props: {
-      type: "year"
-    },
-    format: "yyyy",
-    valueFormat: "yyyy"
+      type: "year",
+      format: "yyyy",
+      valueFormat: "yyyy",
+      style: { width: "150px" }
+    }
   },
   {
-    modelKey: "term",
+    modelKey: "quarter",
     label: "季度",
     type: "select",
     props: {
@@ -20,9 +20,10 @@ export default [
         { value: "夏", label: "夏" },
         { value: "秋", label: "秋" },
         { value: "冬", label: "冬" }
-      ]
+      ],
+      style: { width: "150px" }
     }
   },
 
-  { modelKey: "name", label: "姓名", type: "input" }
+  { modelKey: "name", label: "姓名", type: "input", style: { width: "150px" } }
 ];
