@@ -1,12 +1,13 @@
 <template lang="pug">
 div#app
   //- 表单区域
-  enhanced-el-form(:model="model" :schema="schema"  :inline="true" label-width="70px" label-position= "right")
+  enhanced-el-form(ref="queryForm" :model="model" :schema="schema"  :inline="true" label-width="70px" label-position= "right")
     template(#footer)
       el-form-item.app-btns-box
         el-button.btn(type='primary', @click='clickSearchBtn') 查询
+        el-button.btn(plain, @click='clickResetBtn') 重置
   //- 表格区域
-  enhanced-el-table(@sort-change="sortChange" :data='tableData', :col-configs='colConfigs')
+  enhanced-el-table(ref="mainTable" @sort-change="sortChange" :data='tableData', :col-configs='colConfigs')
     template(#name="colConfig")
       el-table-column(v-bind="colConfig")
         template(#default="{row}")
@@ -27,7 +28,7 @@ export default {
   data() {
     return {
       // 表单数据
-      model: {},
+      model: { quarter: "" },
       // 表单配置
       schema,
       // 表格配置
@@ -37,48 +38,68 @@ export default {
       // 有数据就意味着可能分页
       pageIndex: 0,
       pageSize: 10,
-      isAsc: "",
-      sortBy: "",
+      sortConfig: { isAsc: "", sortBy: "" },
       // 数据总长度，基本只给分页组件用的
       dataCount: 0
     };
   },
   mounted() {
-    this.sortConditionDefault = { isAsc: this.isAsc, sortBy: this.sortBy };
+    // 存下默认，这里需要复制，引用类型你懂的
+    this.sortConfigDefault = { ...this.sortConfig };
     this.getTableData();
   },
   watch: {
-    isAsc() {
-      this.getTableData();
+    sortConfig: {
+      handler(newValue) {
+        console.log(newValue);
+        const order =
+          newValue.isAsc === ""
+            ? null
+            : newValue.isAsc === false
+            ? "descending"
+            : "ascending";
+        const hasOrder = order !== null;
+        const mainTable = this.$refs.mainTable;
+        // 有排序的时候，需要设置，没有排序的时候直接清除掉
+        hasOrder
+          ? mainTable.sort(newValue.sortBy, order)
+          : mainTable.clearSort();
+        this.getTableData();
+      },
+      deep: true
     },
-    sortBy() {
-      this.getTableData();
-    },
+
     pageIndex() {
       this.getTableData();
     }
   },
   methods: {
+    clickResetBtn() {
+      // 重置查询表单，将所有字段值重置为初始值并移除校验结果
+      this.$refs.queryForm.resetFields();
+      // 重置页数
+      this.pageIndex = 1;
+      // 重置排序
+      this.sortConfig = { ...this.sortConfigDefault };
+    },
     clickSearchBtn() {
       this.pageIndex = 1;
-      this.sortBy = this.sortConditionDefault.sortBy;
-      this.isAsc = this.sortConditionDefault.isAsc;
       this.getTableData();
     },
     changeCurrentPage(curPageIndex) {
       this.pageIndex = curPageIndex;
     },
     async getTableData() {
-      const { pageIndex, pageSize, sortBy, isAsc } = this;
-      let params = { ...this.model, pageIndex, pageSize, sortBy, isAsc };
+      const { pageIndex, pageSize } = this;
+      let params = { ...this.model, ...this.sortConfig, pageIndex, pageSize };
       const res = await this.$api.ApiGetList(params);
       this.tableData = res.data;
       this.dataCount = res.dataCount;
     },
     sortChange({ column, prop, order }) {
-      console.log(column, prop, order);
-      this.isAsc = order === "ascending";
-      this.sortBy = prop;
+      console.log(1, column, prop, order);
+      this.sortConfig.isAsc = order === null ? "" : order === "ascending";
+      this.sortConfig.sortBy = prop;
     },
 
     clickName() {}

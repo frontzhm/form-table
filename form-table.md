@@ -56,14 +56,47 @@ categories: js
 
 点击查询的时候，按照查询条件，请求数据。
 
-！！！注意，当前页数需要重置为1，排序也需要重置。
-
-为了重置，需要一开始记录开始的排序数据。
+！！！注意，当前页数需要重置为1。
 
 ![table-form9](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form9.gif)
 ![table-form10](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form10.png)
 
 [github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c3分支`
+
+## 4. 增加重置
+
+重置其实有三个方面：
+
+- 重置查询表单：将所有字段值重置为**初始值**并移除校验结果
+- 重置当前页：设置为1
+- 重置排序：将排序重置为默认排序
+
+！！！注意，排序的设置，除了data里的isAsc和sortBy，还需要将表格里的排序图标保持正确。  
+
+设置排序的图标，有两个方法：
+
+- clearSort：用于清空排序条件，数据会恢复成未排序的状态
+- sort：手动对 Table 进行排序。参数prop属性指定排序列，order指定排序顺序。
+
+所以，需要watch下data里的isAsc和sortBy，发生变化的时候，显示相应的排序图标。
+
+为了监测方便，将isAsc和sortBy放在一个对象里，这样只需要监听一次
+
+```js
+clickResetBtn() {
+  // 重置查询表单，将所有字段值重置为初始值并移除校验结果
+  this.$refs.queryForm.resetFields();
+  // 重置页数
+  this.pageIndex = 1;
+  // 重置排序
+  this.sortConfig = { ...this.sortConfigDefault };
+},
+```
+
+效果图：
+![table-form11.gif](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form11.gif)
+代码：
+![table-form11](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form11.png)
 
 ## 代码
 
