@@ -25,5 +25,12 @@ export default [
     }
   },
 
-  { modelKey: "name", label: "姓名", type: "input", style: { width: "150px" } }
+  {
+    modelKey: "name",
+    label: "姓名",
+    type: "input",
+    props: {
+      style: { width: "150px" }
+    }
+  }
 ];

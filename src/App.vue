@@ -6,6 +6,7 @@ div#app
       el-form-item.app-btns-box
         el-button.btn(type='primary', @click='clickSearchBtn') 查询
         el-button.btn(plain, @click='clickResetBtn') 重置
+        el-button.btn(plain, @click='clickCreateBtn') 新建
   //- 表格区域
   enhanced-el-table(ref="mainTable" @sort-change="sortChange" :data='tableData', :col-configs='colConfigs')
     template(#name="colConfig")
@@ -15,6 +16,12 @@ div#app
   //- 分页
   .pagination-box
     el-pagination(@current-change='changeCurrentPage', :current-page.sync='pageIndex', :page-size='pageSize', layout='prev, pager, next, jumper', :total='dataCount')
+  el-dialog(:title="dialogFormTitle" :visible.sync="isShowDialogForm" center width="340px")
+    enhanced-el-form(ref="dialogForm" :model="dialogFormModel" :schema="dialogFormSchema"  label-width="70px" label-position= "right")
+      template(#footer)
+        el-form-item.app-btns-box
+          el-button.btn(type='primary', @click='clickCancelOfDialogForm') 取消
+          el-button.btn(plain, @click='clickConfirmOfDialogForm') 确定
 </template>
 <script>
 import EnhancedElTable from "@/components/EnhancedElTable";
@@ -40,7 +47,12 @@ export default {
       pageSize: 10,
       sortConfig: { isAsc: "", sortBy: "" },
       // 数据总长度，基本只给分页组件用的
-      dataCount: 0
+      dataCount: 0,
+      // 弹框 新建的各种参数
+      isShowDialogForm: true,
+      dialogFormTitle: "新建学生",
+      dialogFormModel: { quarter: "" },
+      dialogFormSchema: schema
     };
   },
   mounted() {
@@ -74,6 +86,11 @@ export default {
     }
   },
   methods: {
+    clickCreateBtn() {
+      this.isShowDialogForm = true;
+    },
+    clickCancelOfDialogForm() {},
+    clickConfirmOfDialogForm() {},
     clickResetBtn() {
       // 重置查询表单，将所有字段值重置为初始值并移除校验结果
       this.$refs.queryForm.resetFields();

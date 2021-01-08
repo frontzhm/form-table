@@ -98,6 +98,24 @@ clickResetBtn() {
 代码：
 ![table-form11](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form11.png)
 
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c4分支`
+
+## 新建
+
+新建功能一般会弹框显示，填完表单，确定之后，会在列表上显示。
+
+用代码表达：
+
+- `DOM`提前准备好弹框和表单，但不显示
+- 点击新建之后，显示弹框
+- 弹框里点击提交，请求新建的接口
+- 此时看需求，但是多数需要，重置页面，再次请求列表数据，以显示刚刚创建的信息
+- 细节：考虑到第二次点击新建的时候，同一个表单可能会有残留的验证提示，所以需要重置弹框表单
+
+
+
+
+
 ## 代码
 
 ### 代码：1. 显示查询的表单和表格
@@ -742,3 +760,140 @@ export default {
 </style>
 
 ```
+
+### 代码：4. 增加重置
+
+App.vue
+
+```vue
+<template lang="pug">
+div#app
+  //- 表单区域
+  enhanced-el-form(ref="queryForm" :model="model" :schema="schema"  :inline="true" label-width="70px" label-position= "right")
+    template(#footer)
+      el-form-item.app-btns-box
+        el-button.btn(type='primary', @click='clickSearchBtn') 查询
+        el-button.btn(plain, @click='clickResetBtn') 重置
+  //- 表格区域
+  enhanced-el-table(ref="mainTable" @sort-change="sortChange" :data='tableData', :col-configs='colConfigs')
+    template(#name="colConfig")
+      el-table-column(v-bind="colConfig")
+        template(#default="{row}")
+          a.link(href="javascript:;" @click="clickName(row)") {{row.name}}
+  //- 分页
+  .pagination-box
+    el-pagination(@current-change='changeCurrentPage', :current-page.sync='pageIndex', :page-size='pageSize', layout='prev, pager, next, jumper', :total='dataCount')
+</template>
+<script>
+import EnhancedElTable from "@/components/EnhancedElTable";
+import EnhancedElForm from "@/components/EnhancedElForm";
+import schema from "./schema";
+import colConfigs from "./colConfigs";
+export default {
+  name: "app",
+  components: { EnhancedElTable, EnhancedElForm },
+
+  data() {
+    return {
+      // 表单数据
+      model: { quarter: "" },
+      // 表单配置
+      schema,
+      // 表格配置
+      colConfigs,
+      // 表格请求的原始数据
+      tableData: [],
+      // 有数据就意味着可能分页
+      pageIndex: 0,
+      pageSize: 10,
+      sortConfig: { isAsc: "", sortBy: "" },
+      // 数据总长度，基本只给分页组件用的
+      dataCount: 0
+    };
+  },
+  mounted() {
+    // 存下默认，这里需要复制，引用类型你懂的
+    this.sortConfigDefault = { ...this.sortConfig };
+    this.getTableData();
+  },
+  watch: {
+    sortConfig: {
+      handler(newValue) {
+        console.log(newValue);
+        const order =
+          newValue.isAsc === ""
+            ? null
+            : newValue.isAsc === false
+            ? "descending"
+            : "ascending";
+        const hasOrder = order !== null;
+        const mainTable = this.$refs.mainTable;
+        // 有排序的时候，需要设置，没有排序的时候直接清除掉
+        hasOrder
+          ? mainTable.sort(newValue.sortBy, order)
+          : mainTable.clearSort();
+        this.getTableData();
+      },
+      deep: true
+    },
+
+    pageIndex() {
+      this.getTableData();
+    }
+  },
+  methods: {
+    clickResetBtn() {
+      // 重置查询表单，将所有字段值重置为初始值并移除校验结果
+      this.$refs.queryForm.resetFields();
+      // 重置页数
+      this.pageIndex = 1;
+      // 重置排序
+      this.sortConfig = { ...this.sortConfigDefault };
+    },
+    clickSearchBtn() {
+      this.pageIndex = 1;
+      this.getTableData();
+    },
+    changeCurrentPage(curPageIndex) {
+      this.pageIndex = curPageIndex;
+    },
+    async getTableData() {
+      const { pageIndex, pageSize } = this;
+      let params = { ...this.model, ...this.sortConfig, pageIndex, pageSize };
+      const res = await this.$api.ApiGetList(params);
+      this.tableData = res.data;
+      this.dataCount = res.dataCount;
+    },
+    sortChange({ column, prop, order }) {
+      console.log(1, column, prop, order);
+      this.sortConfig.isAsc = order === null ? "" : order === "ascending";
+      this.sortConfig.sortBy = prop;
+    },
+
+    clickName() {}
+  }
+};
+</script>
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #2c3e50;
+}
+
+.el-table {
+  border: 1px solid #e8e8e8;
+  width: 90%;
+  margin: auto;
+}
+.pagination-box {
+  margin-top: 20px;
+  text-align: center;
+}
+</style>
+
+```
+
+## 增加导出
+
