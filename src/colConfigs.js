@@ -13,5 +13,6 @@ export default [
     label: "季度"
   },
 
-  { prop: "score", label: "分数", sortable: "custom" }
+  { prop: "score", label: "分数", sortable: "custom" },
+  { slotName: "action", label: "操作" }
 ];

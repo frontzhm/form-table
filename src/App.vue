@@ -13,6 +13,10 @@ div#app
       el-table-column(v-bind="colConfig")
         template(#default="{row}")
           a.link(href="javascript:;" @click="clickName(row)") {{row.name}}
+    template(#action="colConfig")
+      el-table-column(v-bind="colConfig")
+        template(#default="{row}")
+          div(style="color:#409eff;cursor:pointer" @click="clickEdit(row)") 编辑
   //- 分页
   .pagination-box
     el-pagination(@current-change='changeCurrentPage', :current-page.sync='pageIndex', :page-size='pageSize', layout='prev, pager, next, jumper', :total='dataCount')
@@ -20,8 +24,8 @@ div#app
     enhanced-el-form(ref="dialogForm" :model="dialogFormModel" :schema="dialogFormSchema"  label-width="70px" label-position= "right")
       template(#footer)
         el-form-item
-          el-button.btn(type='primary', @click='clickCancelOfDialogForm') 取消
-          el-button.btn(plain, @click='clickConfirmOfDialogForm') 确定
+          el-button.btn( plain,@click='clickCancelOfDialogForm') 取消
+          el-button.btn(type='primary', @click='clickConfirmOfDialogForm') 确定
 </template>
 <script>
 import EnhancedElTable from "@/components/EnhancedElTable";
@@ -89,12 +93,18 @@ export default {
     }
   },
   methods: {
-    clickCreateBtn() {
-      this.$refs.dialogForm && this.$refs.dialogForm.resetFields();
+    clickEdit(row) {
+      // 这里后期确定是编辑还是添加，以此做一些不同的操作
+      this.isEdit = true;
+      // 注意这里必须是这行在下行的前面，为了后期的resetFields因为页面首次点击编辑的话，表单初始值是空的。如果下面那行在上面的话，页面先点击编辑后点击新建的话，resetFields就会失效。nextTick也是保证这个功能
       this.isShowDialogForm = true;
-    },
-    clickCancelOfDialogForm() {
-      this.isShowDialogForm = false;
+      this.$nextTick(() => {
+        this.dialogFormModel = { ...row };
+      });
+      // 保留当前行的信息，修改成功之后，将更新的信息赋值
+      this.curRow = row;
+      // 可能需要修改标题
+      this.dialogFormTitle = "修改";
     },
     async clickConfirmOfDialogForm() {
       const isValid = await this.$refs.dialogForm.validate();
@@ -102,11 +112,30 @@ export default {
         return;
       }
       // 鉴于时间不多，不在多写接口，表达意思就行
-      // await this.$api.createData(this.dialogFormModel)
-      // this.$message.success('新建成功~')
+      if (this.isEdit) {
+        // await this.$api.editData(this.dialogFormModel)
+        this.$message.success("修改成功~");
+        // 这里需要用遍历的办法更新当前row的信息，必须等接口成功
+        Object.keys(this.dialogFormModel).forEach(key => {
+          this.curRow[key] = this.dialogFormModel[key];
+        });
+      } else {
+        // await this.$api.createData(this.dialogFormModel)
+        this.$message.success("新建成功~");
+        // 重置查询条件和排序
+        this.resetQueryAndSort();
+      }
       this.isShowDialogForm = false;
-      // 重置查询条件和排序
-      this.resetQueryAndSort();
+    },
+    clickCreateBtn() {
+      // 这里后期确定是编辑还是添加，以此做一些不同的操作
+      this.isEdit = false;
+      this.dialogFormTitle = "新建";
+      this.$refs.dialogForm && this.$refs.dialogForm.resetFields();
+      this.isShowDialogForm = true;
+    },
+    clickCancelOfDialogForm() {
+      this.isShowDialogForm = false;
     },
     resetQueryAndSort() {
       // 重置查询表单，将所有字段值重置为初始值并移除校验结果

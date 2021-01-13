@@ -34,15 +34,16 @@ module.exports = {
             ? data.sort((x, y) => x[sortBy] - y[sortBy])
             : data.sort((x, y) => y[sortBy] - x[sortBy]);
         }
-
+        let dataCount;
         // 如果有分页的话
         if (pageSize) {
+          dataCount = data.length;
           data = data.slice((pageIndex - 1) * pageSize, pageSize * pageIndex);
         }
         return res.json({
           state: 1,
           data,
-          dataCount: data.length
+          dataCount
         });
       });
     }

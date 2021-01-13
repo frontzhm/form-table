@@ -132,7 +132,38 @@ DOM的核心代码：
 
 ![table-form14](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form14.png)
 
-[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c4分支`
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c5分支`
+
+## 编辑
+
+编辑功能通常和新建用的同一个表单框。
+但是和新建不一样的是，编辑表单是有数据的。
+
+用代码表达：
+
+- `DOM`提前准备好弹框和表单，但不显示
+- 表格配置加上编辑
+- 点击编辑之后，填充表单数据，显示弹框
+- 弹框里点击提交，有错提示错误，没错请求编辑的接口
+- 此时看需求，但是多数需要，将当前行的数据及时更新
+
+效果图：
+![table-form16.gif](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form16.gif)
+
+代码：
+
+`colConfigs.js`增加操作列：
+
+```js
+  { prop: "score", label: "分数", sortable: "custom" },
+  { slotName: "action", label: "操作" }
+```
+
+![table-form16](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form16.png)
+
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c6分支`
+
+
 
 
 
