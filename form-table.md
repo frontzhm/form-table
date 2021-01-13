@@ -108,10 +108,31 @@ clickResetBtn() {
 
 - `DOM`提前准备好弹框和表单，但不显示
 - 点击新建之后，显示弹框
-- 弹框里点击提交，请求新建的接口
+- 弹框里点击提交，有错提示错误，没错请求新建的接口
 - 此时看需求，但是多数需要，重置页面，再次请求列表数据，以显示刚刚创建的信息
 - 细节：考虑到第二次点击新建的时候，同一个表单可能会有残留的验证提示，所以需要重置弹框表单
 
+效果图：
+![table-form12.gif](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form12.gif)
+
+代码：
+
+DOM的核心代码：
+
+```pug
+  el-dialog(:title="dialogFormTitle" :visible.sync="isShowDialogForm" center width="340px")
+    enhanced-el-form(ref="dialogForm" :model="dialogFormModel" :schema="dialogFormSchema"  label-width="70px" label-position= "right")
+      template(#footer)
+        el-form-item
+          el-button.btn(type='primary', @click='clickCancelOfDialogForm') 取消
+          el-button.btn(plain, @click='clickConfirmOfDialogForm') 确定
+```
+
+![table-form12](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form12.png)
+
+![table-form14](https://blog-huahua.oss-cn-beijing.aliyuncs.com/blog/code/table-form14.png)
+
+[github上](https://juejin.cn/post/691230815799790798244444444)可以切换`c4分支`
 
 
 

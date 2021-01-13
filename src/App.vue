@@ -19,7 +19,7 @@ div#app
   el-dialog(:title="dialogFormTitle" :visible.sync="isShowDialogForm" center width="340px")
     enhanced-el-form(ref="dialogForm" :model="dialogFormModel" :schema="dialogFormSchema"  label-width="70px" label-position= "right")
       template(#footer)
-        el-form-item.app-btns-box
+        el-form-item
           el-button.btn(type='primary', @click='clickCancelOfDialogForm') 取消
           el-button.btn(plain, @click='clickConfirmOfDialogForm') 确定
 </template>
@@ -35,7 +35,7 @@ export default {
   data() {
     return {
       // 表单数据
-      model: { quarter: "" },
+      model: {},
       // 表单配置
       schema,
       // 表格配置
@@ -49,10 +49,14 @@ export default {
       // 数据总长度，基本只给分页组件用的
       dataCount: 0,
       // 弹框 新建的各种参数
-      isShowDialogForm: true,
+      isShowDialogForm: false,
       dialogFormTitle: "新建学生",
-      dialogFormModel: { quarter: "" },
-      dialogFormSchema: schema
+      dialogFormModel: {},
+      dialogFormSchema: schema.map(item => {
+        let res = { ...item };
+        res.rules = [{ required: true, trigger: "blur", message: "不能为空" }];
+        return res;
+      })
     };
   },
   mounted() {
@@ -63,7 +67,6 @@ export default {
   watch: {
     sortConfig: {
       handler(newValue) {
-        console.log(newValue);
         const order =
           newValue.isAsc === ""
             ? null
@@ -87,17 +90,34 @@ export default {
   },
   methods: {
     clickCreateBtn() {
+      this.$refs.dialogForm && this.$refs.dialogForm.resetFields();
       this.isShowDialogForm = true;
     },
-    clickCancelOfDialogForm() {},
-    clickConfirmOfDialogForm() {},
-    clickResetBtn() {
+    clickCancelOfDialogForm() {
+      this.isShowDialogForm = false;
+    },
+    async clickConfirmOfDialogForm() {
+      const isValid = await this.$refs.dialogForm.validate();
+      if (!isValid) {
+        return;
+      }
+      // 鉴于时间不多，不在多写接口，表达意思就行
+      // await this.$api.createData(this.dialogFormModel)
+      // this.$message.success('新建成功~')
+      this.isShowDialogForm = false;
+      // 重置查询条件和排序
+      this.resetQueryAndSort();
+    },
+    resetQueryAndSort() {
       // 重置查询表单，将所有字段值重置为初始值并移除校验结果
       this.$refs.queryForm.resetFields();
       // 重置页数
       this.pageIndex = 1;
       // 重置排序
       this.sortConfig = { ...this.sortConfigDefault };
+    },
+    clickResetBtn() {
+      this.resetQueryAndSort();
     },
     clickSearchBtn() {
       this.pageIndex = 1;
